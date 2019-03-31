@@ -1,14 +1,17 @@
-.PHONY: all apps clean cleanall run help
+.PHONY: all apps lib clean cleanall run help
 
 include Makefile.inc
 
 ROOT_DIR = $(shell pwd)
 ECHO := echo 
 
-all: apps
+all: lib apps
 
 apps: 
 	make -C src apps
+
+lib: 
+	make -C src lib
 
 clean:
 	make -C src clean
@@ -28,6 +31,7 @@ help:
 	@$(ECHO) "Description of targets understood by this Makefile"
 	@$(ECHO) "\t all      : builds everything, default"
 	@$(ECHO) "\t apps     : builds application binaries"
+	@$(ECHO) "\t lib 	  : builds libraries"
 	@$(ECHO) "\t clean    : delete all object files"
 	@$(ECHO) "\t cleanall : delete all object files and binaries"
 	@$(ECHO) "\t run      : build and run all tests, using default procs"
