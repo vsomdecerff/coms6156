@@ -1,4 +1,4 @@
-#include "program.h"
+#include "factorial.h"
 
 int Factorial( int number ) {
    //return number <= 1 ? number : Factorial( number - 1 ) * number;  // fail
