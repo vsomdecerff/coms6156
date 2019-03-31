@@ -4,7 +4,7 @@
 #define CATCH_CONFIG_MAIN
 
 #include <catch2/catch.hpp>
-#include "program.h"
+#include "factorial.h"
 
 TEST_CASE( "Factorial of 0 is 1 (fail)", "[single-file]" ) {
     REQUIRE( Factorial(0) == 1 );
