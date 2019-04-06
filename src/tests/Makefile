@@ -1,6 +1,8 @@
 .PHONY: all apps clean cleanall run help
 
-p ?= 4
+p ?= 1
+tag ?= [npany]
+help = [help]
 
 ROOT_DIR = ../..
 SRC_DIR  := $(ROOT_DIR)/src
@@ -37,9 +39,16 @@ cleanall:
 	@rm -f $(TARGETS)
 
 run: $(TARGETS)
+ifeq ($(tag),$(help))
 	@for target in $(TARGETS) ; do \
-	echo Running $$target ; \
-	$(MPI_DIR)/bin/mpiexec -np $(p) $$target ; \
-	echo ; \
+		echo Running $$target ; \
+		$(MPI_DIR)/bin/mpiexec -np 1 $$target --list-tags ; \
+		echo ; \
+	done
+else 
+	@for target in $(TARGETS) ; do \
+		echo Running $$target ; \
+		$(MPI_DIR)/bin/mpiexec -np $(p) --oversubscribe $$target $(tag) ; \
+		echo ; \
 	done 
-
+endif
