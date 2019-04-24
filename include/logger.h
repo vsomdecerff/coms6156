@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-enum call {MPI_SEND, MPI_ISEND, MPI_RECV };
+enum call {MPI_SEND, MPI_ISEND, MPI_RECV, MPI_IRECV };
 
 struct message {
 	int call;
@@ -15,11 +15,10 @@ struct message {
 
 class Logger {
 
-	private:
-		std::vector<message> message_log;
-	
 	public:
 		Logger();
+
+		std::vector<message> message_log;
 
 		int threshold;
 		int rank;

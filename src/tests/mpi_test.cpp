@@ -1,20 +1,23 @@
+#pragma once
 #include "catch_mpi_main.hpp"
 #include "race_condition.h"
 #include "deadlock.h"
 #include "mpitest.h"
 
-TEST_CASE("dev", "[dev]") {
-	MPI_Wrap::call();
-	MPI_Wrap::call();
-	MPI_Wrap::call();
-	CHECK(0 == 0);
-}
 
-TEST_CASE("Just test I exist", "[npany][npall][np][mpi]") {
+TEST_CASE("Just test I exist", "[hello][npany][npall][np][mpi]") {
+
+	MPI_Wrap::use_wrapper(true);
+	MPI_Wrap::set_threshold(1,1);
+		
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+	MPI_Wrap::set_rank(rank);
     CHECK(size > 0); CHECK(rank >= 0);
+
+	MPI_Wrap::write_log("hello.csv");
 }
 
 
@@ -29,8 +32,17 @@ TEST_CASE( "RC: Isend Irecv, array, 2 procs", "[np2][mpi]" ) {
 }
 
 TEST_CASE( "DL: Send Recv, array", "[npany][npall][np][mpi]" ) {
+	MPI_Wrap::use_wrapper(true);
+    MPI_Wrap::set_threshold(1,1);
+	
+	int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Wrap::set_rank(rank);
+
     int data = 5;
     REQUIRE( deadlock_1(data) == data );
+
+    MPI_Wrap::write_log("DL1.csv");
 }
 
 TEST_CASE( "DL: Send Recv, single value, 2 procs", "[np2][mpi]" ) {

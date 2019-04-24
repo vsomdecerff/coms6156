@@ -12,12 +12,12 @@ int deadlock_1(int data)
 
     if (rank == 0) {
     	for (int i = 1; i < size; i++) {
-			MPI_Recv(&a, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Wrap::MPIw_Recv(&a, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		}
 	}
     else {
 		a = rank * data;
-        MPI_Send(&a, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);	
+        MPI_Wrap::MPIw_Send(&a, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);	
     }
 	
 	return data;
@@ -40,14 +40,14 @@ int deadlock_2(unsigned int data)
 	int a = data - 1;
 	int b = -100;
 	if (rank == 0) {
-		MPI_Send (&a, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+		MPI_Wrap::MPIw_Send (&a, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
 		// MPI does not guarantee that the execution won't block inside MPI_Send
-		MPI_Recv (&b, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Wrap::MPIw_Recv (&b, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	}
 	else if (rank == 1) {
-		MPI_Send (&a, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		MPI_Wrap::MPIw_Send (&a, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
         // MPI does not guarantee that the execution won't block inside MPI_Send
-        MPI_Recv (&b, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Wrap::MPIw_Recv (&b, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	}
 	return b + 1;
 }
