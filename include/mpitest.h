@@ -56,10 +56,10 @@ namespace MPI_Wrap {
 
         log.log(MPI_ISEND, log.rank, dest, tag, wait_time);
 
-		return MPI_Isend(buf, count, type, dest, tag, comm, &req);	
+		return MPI_Isend(buf, count, datatype, dest, tag, comm, request);	
 	}
 
-    int MPIw_Send(const void *buf, int count, MPI_Datatype type, int dest,
+    int MPIw_Send(const void *buf, int count, MPI_Datatype datatype, int dest,
                  int tag, MPI_Comm comm) {
         int wait_time = rand() % log.max_wait_time;
         std::this_thread::sleep_for (std::chrono::seconds(wait_time));
@@ -72,7 +72,7 @@ namespace MPI_Wrap {
 		MPI_Status stat;
 
 		int start = time();
-		ret_value = MPI_Isend(buf, count, type, dest, tag, comm, &req);
+		ret_value = MPI_Isend(buf, count, datatype, dest, tag, comm, &req);
 
 		int flag = false;
 		while(flag) {
@@ -90,14 +90,44 @@ namespace MPI_Wrap {
 		return ret_value;
     }
 
+	int MPIw_Irecv(void *buf, int count, MPI_Datatype datatype, int source,
+              int tag, MPI_Comm comm, MPI_Request * request) {
 
-
-    int MPIw_Recv(void *buf, int count, MPI_Datatype type, int source,
-             int tag, MPI_Comm comm, MPI_Status *status) {
-        int wait_time = rand() % 10;
+		int wait_time = rand() % log.max_wait_time;
         std::this_thread::sleep_for (std::chrono::seconds(wait_time));
-        //Log wait_time, process rank, method call, source/dest in Framework database
 
-        return MPI_Recv(buf, count, type, source, tag, comm, status);
+        log.log(MPI_ISEND, source, log.rank, tag, wait_time);
+
+        return MPI_Irecv(buf, count, datatype, source, tag, comm, request);
+	}
+
+    int MPIw_Recv(void *buf, int count, MPI_Datatype datatype, int source,
+             int tag, MPI_Comm comm, MPI_Status *status) {
+
+		int wait_time = rand() % log.max_wait_time;
+        std::this_thread::sleep_for (std::chrono::seconds(wait_time));
+
+        log.log(MPI_ISEND, source, log.rank, tag, wait_time);
+	
+		MPI_Request req;
+        MPI_Status stat;
+
+        int start = time();
+		int ret_value = MPI_Irecv(buf, count, datatype, source, tag, comm, &req);
+
+		int flag = false;
+        while(flag) {
+            ret_value = MPI_Test(&req, &flag, &stat);
+            if (ret_value != MPI_SUCCESS) {
+                return ret_value;
+            }
+
+            if( (time() - start) > log.threshold) {
+                log.deadlock();
+                return MPI_ERR_UNKNOWN;
+            }
+        }
+
+        return ret_value;
     }
 }       
