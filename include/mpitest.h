@@ -17,11 +17,18 @@ namespace MPI_Wrap {
 		log.save("tmp.csv");
     }
 
+	void use_wrapper(bool use) {
+		log.use_wrapper = use;
+	}
+
 	void set_rank(int rank) {
 		log.rank = rank;
 	}
 
 	void set_threshold(int threshold, int max_wait_time) {
+		if (max_wait_time == 0) {
+			max_wait_time = 1;
+		}
 		if (threshold > max_wait_time) {
 			max_wait_time = threshold;
 		}
@@ -66,6 +73,10 @@ namespace MPI_Wrap {
    
 	    log.log(MPI_SEND, log.rank, dest, tag, wait_time);
 	
+		if(!log.use_wrapper) {
+			return MPI_Send(buf, count, datatype, dest, tag, comm);
+		}
+
 		int ret_value;
 
 		MPI_Request req;
@@ -108,6 +119,10 @@ namespace MPI_Wrap {
         std::this_thread::sleep_for (std::chrono::seconds(wait_time));
 
         log.log(MPI_ISEND, source, log.rank, tag, wait_time);
+
+		if(!log.use_wrapper) {
+			return MPI_Recv(buf, count, datatype, source, tag, comm, status);
+		}
 	
 		MPI_Request req;
         MPI_Status stat;

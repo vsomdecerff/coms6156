@@ -24,7 +24,8 @@ class Logger {
 		int threshold;
 		int rank;
 		int max_wait_time;
-
+		bool use_wrapper;
+	
 		void clear();
 		void save(std::string filename);
 		void log(message m);
