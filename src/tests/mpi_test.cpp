@@ -1,7 +1,14 @@
 #include "catch_mpi_main.hpp"
 #include "race_condition.h"
 #include "deadlock.h"
+#include "mpitest.h"
 
+TEST_CASE("dev", "[dev]") {
+	MPI_Wrap::call();
+	MPI_Wrap::call();
+	MPI_Wrap::call();
+	CHECK(0 == 0);
+}
 
 TEST_CASE("Just test I exist", "[npany][npall][np][mpi]") {
     int rank, size;

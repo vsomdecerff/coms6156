@@ -8,7 +8,7 @@ BIN_DIR  := $(ROOT_DIR)/bin
 
 include $(ROOT_DIR)/Makefile.inc
 
-TARGET := $(LIB_DIR)/libparallel.a
+TARGET := $(LIB_DIR)/libutil.a
 
 HEADERS := $(wildcard $(INC_DIR)/*.h)
 SOURCES := $(wildcard *.cpp)
@@ -27,12 +27,11 @@ $(TARGET): $(OBJECTS)
 
 lib: $(TARGET)
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
-
 clean:
 	@rm -f *.o *~ ./#.#
 
 cleanall: clean
 	@rm -f $(TARGET)
 
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@

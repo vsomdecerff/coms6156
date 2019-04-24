@@ -35,4 +35,4 @@ help:
 	@$(ECHO) "\t clean    : delete all object files"
 	@$(ECHO) "\t cleanall : delete all object files and binaries"
 	@$(ECHO) "\t run      : build and run all tests, using default procs"
-	@$(ECHO) "\t run p=n  : build and run all tests, using procs (p) = n" 
+	@$(ECHO) "\t run p=n tag=[tag]  : build and run tests with tag, using procs (p) = n" 

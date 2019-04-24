@@ -30,7 +30,7 @@ lib: $(TARGET)
 clean:
 	@rm -f *.o *~ ./#.#
 
-cleanall:
+cleanall: clean
 	@rm -f $(TARGET)
 
 %.o: %.cpp

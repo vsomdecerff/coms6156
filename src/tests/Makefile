@@ -18,7 +18,7 @@ OBJECTS := $(subst cpp,o,$(SOURCES))
 TARGETS := $(SOURCES:%.cpp=$(ROOT_DIR)/bin/%.test)
 
 INCLUDES += -I$(INC_DIR)
-LIBS     += -L$(LIB_DIR) -lseq -lparallel
+LIBS     += -L$(LIB_DIR) -lutil -lseq -lparallel 
 
 all: $(TARGETS)
 
