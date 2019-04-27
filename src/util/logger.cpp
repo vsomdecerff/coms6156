@@ -23,7 +23,6 @@ void Logger::save(std::string filename)
 void Logger::log(message m)
 {
 	message_log.push_back(m);
-//	printf("logged %d", message_log.size());
 }
 
 void Logger::log(int c, int s, int d, int t, int w)
@@ -32,6 +31,29 @@ void Logger::log(int c, int s, int d, int t, int w)
 	log(m);
 }
 
-void Logger::deadlock()
-{}
+void Logger::emit_deadlock_detected()
+{
+	printf("DEADLOCK DETECTED by %d \n", rank);
+	int noop = 0;
+	for( int p = 0; p < size; p++ ) {
+		if (p != rank) {
+			printf("Sending to %d \n", p);
+			MPI_Send(&noop, 1, MPI_INT, p, DEADLOCK_TAG, MPI_COMM_WORLD);
+		}
+	}
+	REQUIRE(false);
+}
 
+
+bool Logger::is_deadlock_detected()
+{
+	int detected = false;
+	MPI_Iprobe(MPI_ANY_SOURCE, DEADLOCK_TAG, MPI_COMM_WORLD, &detected, MPI_STATUS_IGNORE);
+	if(detected) {
+		int noop = 0;
+		printf("Notified %d \n", rank);
+		MPI_Recv(&noop, 1, MPI_INT, MPI_ANY_SOURCE, DEADLOCK_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		REQUIRE(false);
+	}
+	return detected;
+}

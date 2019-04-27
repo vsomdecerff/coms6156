@@ -2,8 +2,10 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <catch2/catch.hpp>
+#include "mpi.h"
 
-enum call {MPI_SEND, MPI_ISEND, MPI_RECV, MPI_IRECV };
+enum call {MPI_SEND, MPI_ISEND, MPI_RECV, MPI_IRECV, MPI_IBCAST, MPI_BCAST };
 
 struct message {
 	int call;
@@ -14,7 +16,8 @@ struct message {
 };
 
 class Logger {
-
+	private:
+		int DEADLOCK_TAG = 2606;
 	public:
 		Logger();
 
@@ -22,6 +25,7 @@ class Logger {
 
 		int threshold;
 		int rank;
+		int size;
 		int max_wait_time;
 		bool use_wrapper;
 	
@@ -29,5 +33,6 @@ class Logger {
 		void save(std::string filename);
 		void log(message m);
 		void log(int c, int s, int d, int t, int w);
-		void deadlock();
+		void emit_deadlock_detected();
+		bool is_deadlock_detected();
 };

@@ -17,13 +17,20 @@ namespace MPI_Wrap {
 	void set_rank(int rank) {
 		log.rank = rank;
 	}
+	
+	void set_size(int size) {
+		log.size = size;
+	}
 
 	void set_threshold(int threshold, int max_wait_time) {
 		if (max_wait_time == 0) {
 			max_wait_time = 1;
 		}
-		if (threshold > max_wait_time) {
-			max_wait_time = threshold;
+		if (threshold == 0) {
+			threshold = 1;
+		}
+		if ( max_wait_time >= threshold) {
+			threshold = max_wait_time + 1 ;
 		}
 		log.threshold = threshold;
 		log.max_wait_time = max_wait_time;
@@ -36,6 +43,10 @@ namespace MPI_Wrap {
 
 	void write_log(std::string filename) {
 		log.save(filename);
+	}
+
+	void check_deadlock_message() {
+		log.is_deadlock_detected();
 	}
 
 	int time() {
@@ -54,8 +65,11 @@ namespace MPI_Wrap {
 		int wait_time = rand() % log.max_wait_time;
         std::this_thread::sleep_for (std::chrono::seconds(wait_time));
 
-        log.log(MPI_ISEND, log.rank, dest, tag, wait_time);
-
+		if (log.is_deadlock_detected()) 
+		{
+			return MPI_ERR_UNKNOWN;
+		}
+		log.log(MPI_ISEND, log.rank, dest, tag, wait_time);
 		return MPI_Isend(buf, count, datatype, dest, tag, comm, request);	
 	}
 
@@ -63,6 +77,12 @@ namespace MPI_Wrap {
                  int tag, MPI_Comm comm) {
         int wait_time = rand() % log.max_wait_time;
         std::this_thread::sleep_for (std::chrono::seconds(wait_time));
+
+
+		if (log.is_deadlock_detected())
+        {
+            return MPI_ERR_UNKNOWN;
+        }
 
 	    log.log(MPI_SEND, log.rank, dest, tag, wait_time);
 	
@@ -79,14 +99,19 @@ namespace MPI_Wrap {
 		ret_value = MPI_Isend(buf, count, datatype, dest, tag, comm, &req);
 
 		int flag = false;
-		while(flag) {
+		while(!flag) {
 			ret_value = MPI_Test(&req, &flag, &stat);
 			if (ret_value != MPI_SUCCESS) {
 				return ret_value;
 			}
 
+			if (log.is_deadlock_detected())
+        	{
+            	return MPI_ERR_UNKNOWN;
+        	}
+
 			if( (time() - start) > log.threshold) {
-				log.deadlock();
+				log.emit_deadlock_detected();
 				return MPI_ERR_UNKNOWN;
 			}
 		}
@@ -99,6 +124,11 @@ namespace MPI_Wrap {
 
 		int wait_time = rand() % log.max_wait_time;
         std::this_thread::sleep_for (std::chrono::seconds(wait_time));
+
+		if (log.is_deadlock_detected())
+        {
+            return MPI_ERR_UNKNOWN;
+        }
 
         log.log(MPI_IRECV, source, log.rank, tag, wait_time);
 
@@ -116,26 +146,94 @@ namespace MPI_Wrap {
 		if(!log.use_wrapper) {
 			return MPI_Recv(buf, count, datatype, source, tag, comm, status);
 		}
-	
+		
 		MPI_Request req;
         MPI_Status stat;
 
         int start = time();
-		int ret_value = MPI_Irecv(buf, count, datatype, source, tag, comm, &req);
+		int ret_value; // = MPI_Irecv(buf, count, datatype, source, tag, comm, &req);
 
 		int flag = false;
-        while(flag) {
+        while(!flag) {
+			//ret_value = MPI_Test(&req, &flag, &stat);
+			ret_value = MPI_Iprobe(source, tag, comm, &flag, MPI_STATUS_IGNORE);
+            if (ret_value != MPI_SUCCESS) {
+				printf("BAD RETURN VALUE in MPIw_Recv");
+                return ret_value;
+            }
+
+			if (log.is_deadlock_detected())
+        	{
+            	return MPI_ERR_UNKNOWN;
+        	}
+
+            if( (time() - start) > log.threshold) {
+                log.emit_deadlock_detected();
+                return MPI_ERR_UNKNOWN;
+            }
+        }
+		ret_value = MPI_Recv(buf, count, datatype, source, tag, comm, status);
+        return ret_value;
+    }
+
+	int MPIw_Ibcast(void *buffer, int count, MPI_Datatype datatype, int root, 
+			MPI_Comm comm, MPI_Request *request) {
+
+		int wait_time = rand() % log.max_wait_time;
+		std::this_thread::sleep_for (std::chrono::seconds(wait_time));
+		
+		if (log.is_deadlock_detected()) 
+		{
+			return MPI_ERR_UNKNOWN;
+		}
+
+		log.log(MPI_IBCAST, root, log.rank, 0, wait_time);
+		return MPI_Ibcast(buffer, count, datatype, root, comm, request); 
+	}
+
+	int MPIw_Bcast( void *buffer, int count, MPI_Datatype datatype, int root, 
+               MPI_Comm comm ) {
+
+		int wait_time = rand() % log.max_wait_time;
+        std::this_thread::sleep_for (std::chrono::seconds(wait_time));
+
+        if (log.is_deadlock_detected())
+        {
+            return MPI_ERR_UNKNOWN;
+        }
+
+        log.log(MPI_BCAST, root, log.rank, 0, wait_time);
+
+		if(!log.use_wrapper) {
+            return MPI_Bcast(buffer, count, datatype, root, comm);
+        }
+
+        int ret_value;
+
+        MPI_Request req;
+        MPI_Status stat;
+
+        int start = time();
+        ret_value = MPI_Ibcast(buffer, count, datatype, root, comm, &req);
+
+        int flag = false;
+        while(!flag) {
             ret_value = MPI_Test(&req, &flag, &stat);
             if (ret_value != MPI_SUCCESS) {
                 return ret_value;
             }
 
+            if (log.is_deadlock_detected())
+            {
+                return MPI_ERR_UNKNOWN;
+            }
+
             if( (time() - start) > log.threshold) {
-                log.deadlock();
+                log.emit_deadlock_detected();
                 return MPI_ERR_UNKNOWN;
             }
         }
 
         return ret_value;
-    }
+	}
 }       
