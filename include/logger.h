@@ -5,7 +5,7 @@
 #include <catch2/catch.hpp>
 #include "mpi.h"
 
-enum call {MPI_SEND, MPI_ISEND, MPI_RECV, MPI_IRECV, MPI_IBCAST, MPI_BCAST };
+enum call {MPIc_SEND, MPIc_ISEND, MPIc_RECV, MPIc_IRECV, MPIc_BCAST, MPIc_IBCAST };
 
 struct message {
 	int call;
@@ -33,6 +33,6 @@ class Logger {
 		void save(std::string filename);
 		void log(message m);
 		void log(int c, int s, int d, int t, int w);
-		void emit_deadlock_detected();
+		void emit_deadlock_detected(std::string method_name);
 		bool is_deadlock_detected();
 };

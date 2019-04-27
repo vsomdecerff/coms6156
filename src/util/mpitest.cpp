@@ -52,8 +52,8 @@ namespace MPI_Wrap {
 	int time() {
 		auto now = std::chrono::high_resolution_clock::now();
 		auto duration = now.time_since_epoch();
-		auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-		return millis;
+		auto time_cast = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+		return time_cast;
 	}
 
     int MPIw_Init(int *argc, char ***argv) {
@@ -69,7 +69,7 @@ namespace MPI_Wrap {
 		{
 			return MPI_ERR_UNKNOWN;
 		}
-		log.log(MPI_ISEND, log.rank, dest, tag, wait_time);
+		log.log(MPIc_ISEND, log.rank, dest, tag, wait_time);
 		return MPI_Isend(buf, count, datatype, dest, tag, comm, request);	
 	}
 
@@ -84,7 +84,7 @@ namespace MPI_Wrap {
             return MPI_ERR_UNKNOWN;
         }
 
-	    log.log(MPI_SEND, log.rank, dest, tag, wait_time);
+	    log.log(MPIc_SEND, log.rank, dest, tag, wait_time);
 	
 		if(!log.use_wrapper) {
 			return MPI_Send(buf, count, datatype, dest, tag, comm);
@@ -111,7 +111,7 @@ namespace MPI_Wrap {
         	}
 
 			if( (time() - start) > log.threshold) {
-				log.emit_deadlock_detected();
+				log.emit_deadlock_detected("MPI_Send");
 				return MPI_ERR_UNKNOWN;
 			}
 		}
@@ -130,7 +130,7 @@ namespace MPI_Wrap {
             return MPI_ERR_UNKNOWN;
         }
 
-        log.log(MPI_IRECV, source, log.rank, tag, wait_time);
+        log.log(MPIc_IRECV, source, log.rank, tag, wait_time);
 
         return MPI_Irecv(buf, count, datatype, source, tag, comm, request);
 	}
@@ -141,24 +141,25 @@ namespace MPI_Wrap {
 		int wait_time = rand() % log.max_wait_time;
         std::this_thread::sleep_for (std::chrono::seconds(wait_time));
 
-        log.log(MPI_ISEND, source, log.rank, tag, wait_time);
+		int ret_value ;
+
+		MPI_Status stat;
+		if (status == MPI_STATUS_IGNORE) {
+			status = &stat;	
+		}
 
 		if(!log.use_wrapper) {
-			return MPI_Recv(buf, count, datatype, source, tag, comm, status);
+			ret_value = MPI_Recv(buf, count, datatype, source, tag, comm, status);
+			log.log(MPIc_RECV, status->MPI_SOURCE, log.rank, tag, wait_time);
+			return ret_value;
 		}
 		
-		MPI_Request req;
-        MPI_Status stat;
-
         int start = time();
-		int ret_value; // = MPI_Irecv(buf, count, datatype, source, tag, comm, &req);
 
 		int flag = false;
         while(!flag) {
-			//ret_value = MPI_Test(&req, &flag, &stat);
 			ret_value = MPI_Iprobe(source, tag, comm, &flag, MPI_STATUS_IGNORE);
             if (ret_value != MPI_SUCCESS) {
-				printf("BAD RETURN VALUE in MPIw_Recv");
                 return ret_value;
             }
 
@@ -168,11 +169,12 @@ namespace MPI_Wrap {
         	}
 
             if( (time() - start) > log.threshold) {
-                log.emit_deadlock_detected();
+                log.emit_deadlock_detected("MPI_Recv");
                 return MPI_ERR_UNKNOWN;
             }
         }
 		ret_value = MPI_Recv(buf, count, datatype, source, tag, comm, status);
+		log.log(MPIc_RECV, status->MPI_SOURCE, log.rank, tag, wait_time);
         return ret_value;
     }
 
@@ -187,7 +189,7 @@ namespace MPI_Wrap {
 			return MPI_ERR_UNKNOWN;
 		}
 
-		log.log(MPI_IBCAST, root, log.rank, 0, wait_time);
+		log.log(MPIc_IBCAST, root, log.rank, 0, wait_time);
 		return MPI_Ibcast(buffer, count, datatype, root, comm, request); 
 	}
 
@@ -202,7 +204,7 @@ namespace MPI_Wrap {
             return MPI_ERR_UNKNOWN;
         }
 
-        log.log(MPI_BCAST, root, log.rank, 0, wait_time);
+        log.log(MPIc_BCAST, root, log.rank, 0, wait_time);
 
 		if(!log.use_wrapper) {
             return MPI_Bcast(buffer, count, datatype, root, comm);
@@ -229,7 +231,7 @@ namespace MPI_Wrap {
             }
 
             if( (time() - start) > log.threshold) {
-                log.emit_deadlock_detected();
+                log.emit_deadlock_detected("MPI_Bcast");
                 return MPI_ERR_UNKNOWN;
             }
         }

@@ -6,7 +6,11 @@ Created on Wed Apr 24 17:57:39 2019
 @author: vsomdec
 """
 
-MPI_SEND, MPI_ISEND, MPI_RECV, MPI_IRECV= 0,1,2,3
+import numpy as np
+
+MPI_SEND, MPI_ISEND, MPI_RECV, MPI_IRECV, MPI_BCAST, MPI_IBCAST = 0,1,2,3,4,5
+
+home = "/Users/vsomdec/workspace/Software_Engineering/project/code/coms6156/src/tests/"
 
 def read_all_logs(log_file_prefix, num_procesess):
 
@@ -15,14 +19,14 @@ def read_all_logs(log_file_prefix, num_procesess):
     
     for p in range(num_procesess):
         p_log = {}
-        fn = "{}_{}.csv".format(log_file_prefix, p)
+        fn = "{}/{}_{}.csv".format(home, log_file_prefix, p)
         
         with open(fn) as f:  
             for line in f:
                 line = line.strip()
-                if line.startswith("id"):
+                if line.startswith("message"):
                     continue
-                message = line.split(', ')
+                message = [int(x) for x in line.split(', ')]
                 p_log[message[0]] = message[1:]
                 
         logs[p] = p_log
@@ -44,31 +48,56 @@ def associate_messages(logs, num_processes):
             
             if call in [MPI_SEND, MPI_ISEND]:
                 dest_log = logs[dest]
-                for _m_id in dest_log:
-                    if dest_log[_m_id] is None:
+                for dest_m_id in dest_log:
+                    if dest_log[dest_m_id] is None:
                         continue
                     
-                    __call, _source, _, _tag, _wait_time = dest_log[_m_id]
+                    dest_call, dest_source, _, dest_tag, dest_wait_time = dest_log[dest_m_id]
                     
-                    if _source == p:
-                        pass
-                        p_log[m_id] = None
-                        dest_log[_m_id] = None
-                        associations.append(((p, m_id), (dest, _m_id)))
+                    if dest_source == p:
+                        logs[p][m_id] = None
+                        logs[dest][dest_m_id] = None
+                        associations.append(((p, m_id), (dest, dest_m_id)))
+                        break
                         
             elif call in [MPI_RECV, MPI_IRECV]:
                 source_log = logs[source]
-                for _m_id in source_log:
-                    if source_log[_m_id] is None:
+                for source_m_id in source_log:
+                    if source_log[source_m_id] is None:
                         continue
                     
-                    __call, _, _dest, _tag, _wait_time = source_log[_m_id]
+                    source_call, _, source_dest, source_tag, source_wait_time = source_log[source_m_id]
                     
-                    if _dest == p:
-                        pass
-                        p_log[m_id] = None
-                        source_log[_m_id] = None
-                        associations.append(((p, m_id), (source, _m_id)))
+                    if source_dest == p:
+                        logs[p][m_id] = None
+                        logs[source][source_m_id] = None
+                        associations.append(((p, m_id), (source, source_m_id)))
+                        break
+            elif call in [MPI_BCAST]:
+                root = source
+                all_found = np.zeros(num_processes) 
+                all_found[root] = 1
+                for p_dest in range(num_processes):
+                    if p_dest == root:
+                        continue
+                    dest_log = logs[p_dest]
+                    for dest_m_id in dest_log:
+                        if dest_log[dest_m_id] is None:
+                            continue
+                        
+                        dest_call, dest_source, _, dest_tag, dest_wait_time = dest_log[dest_m_id]
+                        
+                        if dest_call == MPI_BCAST and dest_source == root:
+                            logs[p_dest][dest_m_id] = None
+                            associations.append(((p, m_id), (p_dest, dest_m_id)))
+                            all_found[p_dest] = 1
+                            break
+                
+                if np.sum(all_found) == num_processes:
+                    logs[p][m_id] = None
+  
+                    
+
     
     
     for p in range(num_processes):
@@ -79,8 +108,8 @@ def associate_messages(logs, num_processes):
         logs[p] = clean_p_log
     return associations, logs
 
-log_file_prefix = "DL1"
-num_procesess = 1
+log_file_prefix = "RC3"
+num_procesess = 3
 logs = read_all_logs(log_file_prefix, num_procesess)
 
 associations, unmatched_messages = associate_messages(logs, num_procesess)
