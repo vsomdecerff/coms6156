@@ -51,3 +51,44 @@ int deadlock_2(unsigned int data)
 	}
 	return b + 1;
 }
+
+int deadlock_3(int data)
+{   
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    int size;
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    int a = 0;
+  
+    if (rank == 0) { 
+		a = data;
+        for (int i = 1; i < size; i++) {
+			MPI_Wrap::MPIw_Send(&a, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+        }
+    }
+    else {
+    }
+    
+    return a;
+}
+
+int deadlock_4(int data)
+{
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    int size;
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    int a = 0;
+
+    if (rank == 0) {
+        for (int i = 1; i < size; i++) {
+            MPI_Wrap::MPIw_Recv (&a, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        }
+    }
+    else {
+    }
+
+    return a;
+}

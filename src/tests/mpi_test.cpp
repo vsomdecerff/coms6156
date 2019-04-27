@@ -16,14 +16,26 @@ void test_setup(int* rank, int* mpi_size) {
 	MPI_Wrap::set_size(*mpi_size);
 }
 
+void all_here() {
+	MPI_Request req;
+    MPI_Status stat;
+    MPI_Ibarrier(MPI_COMM_WORLD, &req);
+   
+    int all_here = false;
+    while (!all_here) {
+        MPI_Test(&req, &all_here, &stat);
+        MPI_Wrap::check_deadlock_message();
+    }
+}
+
 void test_closeout(std::string test_name, int rank) {
-	MPI_Wrap::check_deadlock_message();
+	all_here();
 	MPI_Wrap::write_log(test_name + "_" + std::to_string(rank) + ".csv");
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void check_test_results(int rank, int mpi_size, int desired_value, int ret_value) {
-	MPI_Barrier(MPI_COMM_WORLD);
+	all_here();
 
 	int all_desired[mpi_size];
 	int all_returned[mpi_size];
@@ -101,6 +113,32 @@ TEST_CASE( "DL: Send Recv, single value, 2 procs", "[np2][mpi][dead][dead2]" ) {
 	check_test_results(rank, mpi_size, desired_value, ret_value);
 
 	test_closeout("DL2", rank);
+}
+
+TEST_CASE( "DL: Send, single value, missing recv", "[npany][mpi][dead][dead3]" ) {
+    int rank, mpi_size;
+    test_setup(&rank, &mpi_size);
+
+    unsigned int data = 5;
+    int desired_value = data;
+    int ret_value = deadlock_3(data);
+
+    check_test_results(rank, mpi_size, desired_value, ret_value);
+
+    test_closeout("DL3", rank);
+}
+
+TEST_CASE( "DL: Recv, single value, missing send", "[npany][mpi][dead][dead4]" ) {
+    int rank, mpi_size;
+    test_setup(&rank, &mpi_size);
+
+    unsigned int data = 5;
+    int desired_value = data;
+    int ret_value = deadlock_4(data);
+
+    check_test_results(rank, mpi_size, desired_value, ret_value);
+
+    test_closeout("DL4", rank);
 }
 
 TEST_CASE( "RC: Recv Bcast Recv, single value, 3 procs", "[np3][mpi][race][race3]" ) {
