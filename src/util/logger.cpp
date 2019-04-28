@@ -40,6 +40,7 @@ void Logger::emit_deadlock_detected(std::string method_name)
 			MPI_Send(&noop, 1, MPI_INT, p, DEADLOCK_TAG, MPI_COMM_WORLD);
 		}
 	}
+	save(test_name + "_" + std::to_string(rank) + ".csv");
 	REQUIRE(false);
 }
 
@@ -53,5 +54,6 @@ bool Logger::is_deadlock_detected()
 		MPI_Recv(&noop, 1, MPI_INT, MPI_ANY_SOURCE, DEADLOCK_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		REQUIRE(false);
 	}
+	save(test_name + "_" + std::to_string(rank) + ".csv");
 	return detected;
 }

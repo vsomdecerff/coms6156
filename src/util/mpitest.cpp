@@ -22,6 +22,10 @@ namespace MPI_Wrap {
 		log.size = size;
 	}
 
+	void set_test_name(std::string test_name) {
+		log.test_name = test_name;
+	}
+
 	void set_threshold(int threshold, int max_wait_time) {
 		if (max_wait_time == 0) {
 			max_wait_time = 1;
@@ -41,8 +45,8 @@ namespace MPI_Wrap {
 		log.clear();
 	}
 
-	void write_log(std::string filename) {
-		log.save(filename);
+	void write_log() {
+		log.save(log.test_name + "_" + std::to_string(log.rank) + ".csv");
 	}
 
 	void check_deadlock_message() {
@@ -169,6 +173,7 @@ namespace MPI_Wrap {
         	}
 
             if( (time() - start) > log.threshold) {
+				log.log(MPIc_RECV, source, log.rank, tag, wait_time);
                 log.emit_deadlock_detected("MPI_Recv");
                 return MPI_ERR_UNKNOWN;
             }

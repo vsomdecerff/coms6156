@@ -62,6 +62,8 @@ def associate_messages(logs, num_processes):
                         
             elif call in [MPI_RECV, MPI_IRECV]:
                 source_log = logs[source]
+                if source == -1:
+                    continue
                 for source_m_id in source_log:
                     if source_log[source_m_id] is None:
                         continue
@@ -108,8 +110,8 @@ def associate_messages(logs, num_processes):
         logs[p] = clean_p_log
     return associations, logs
 
-log_file_prefix = "RC3"
-num_procesess = 3
+log_file_prefix = "DL4"
+num_procesess = 2
 logs = read_all_logs(log_file_prefix, num_procesess)
 
 associations, unmatched_messages = associate_messages(logs, num_procesess)

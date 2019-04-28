@@ -24,6 +24,7 @@ class Logger {
 		std::vector<message> message_log;
 
 		int threshold;
+		std::string test_name;
 		int rank;
 		int size;
 		int max_wait_time;

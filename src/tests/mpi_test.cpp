@@ -6,7 +6,7 @@
 #include "mpitest.h"
 
 
-void test_setup(int* rank, int* mpi_size) {
+void test_setup(int* rank, int* mpi_size, std::string test_name) {
 	MPI_Wrap::use_wrapper(true);
     MPI_Wrap::clear_log();
     MPI_Wrap::set_threshold(10,5);
@@ -14,6 +14,7 @@ void test_setup(int* rank, int* mpi_size) {
     MPI_Comm_size(MPI_COMM_WORLD, mpi_size);
     MPI_Wrap::set_rank(*rank);
 	MPI_Wrap::set_size(*mpi_size);
+	MPI_Wrap::set_test_name(test_name);
 }
 
 void all_here() {
@@ -28,9 +29,9 @@ void all_here() {
     }
 }
 
-void test_closeout(std::string test_name, int rank) {
+void test_closeout() {
 	all_here();
-	MPI_Wrap::write_log(test_name + "_" + std::to_string(rank) + ".csv");
+	MPI_Wrap::write_log();
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
@@ -54,7 +55,7 @@ void check_test_results(int rank, int mpi_size, int desired_value, int ret_value
 
 TEST_CASE("Just test I exist", "[hello][npany][mpi]") {
     int rank, mpi_size;
-    test_setup(&rank, &mpi_size);
+    test_setup(&rank, &mpi_size, "hello");
 
     CHECK(mpi_size > 0); CHECK(rank >= 0);
 
@@ -62,7 +63,7 @@ TEST_CASE("Just test I exist", "[hello][npany][mpi]") {
 
 TEST_CASE( "RC: Isend Recv, single value, 2 procs", "[np2][mpi][race][race1]" ) {
 	int rank, mpi_size;
-    test_setup(&rank, &mpi_size);
+    test_setup(&rank, &mpi_size, "RC1");
 	REQUIRE(mpi_size == 2);
 	
     unsigned int data = 5;
@@ -71,12 +72,12 @@ TEST_CASE( "RC: Isend Recv, single value, 2 procs", "[np2][mpi][race][race1]" ) 
 
 	check_test_results(rank, mpi_size, desired_value, ret_value);
     
-	test_closeout("RC1", rank);
+	test_closeout();
 }
 
 TEST_CASE( "RC: Isend Irecv, array, 2 procs", "[np2][mpi][race][race2]" ) {
 	int rank, mpi_size;
-    test_setup(&rank, &mpi_size);
+    test_setup(&rank, &mpi_size, "RC2");
     REQUIRE(mpi_size == 2);
 
     unsigned int data = 5;
@@ -85,12 +86,12 @@ TEST_CASE( "RC: Isend Irecv, array, 2 procs", "[np2][mpi][race][race2]" ) {
 
 	check_test_results(rank, mpi_size, desired_value, ret_value);
 	
-	test_closeout("RC2", rank);
+	test_closeout();
 }
 
 TEST_CASE( "DL: Send Recv, array", "[npany][mpi][dead][dead1]" ) {
 	int rank, mpi_size;
-    test_setup(&rank, &mpi_size);
+    test_setup(&rank, &mpi_size, "DL1");
 
     int data = 5;
 	int desired_value = data;
@@ -98,12 +99,12 @@ TEST_CASE( "DL: Send Recv, array", "[npany][mpi][dead][dead1]" ) {
 
 	check_test_results(rank, mpi_size, desired_value, ret_value);
 
-	test_closeout("DL1", rank);
+	test_closeout();
 }
 
 TEST_CASE( "DL: Send Recv, single value, 2 procs", "[np2][mpi][dead][dead2]" ) {
 	int rank, mpi_size;
-    test_setup(&rank, &mpi_size);
+    test_setup(&rank, &mpi_size, "DL2");
     REQUIRE(mpi_size == 2);
 
     unsigned int data = 5;
@@ -112,12 +113,12 @@ TEST_CASE( "DL: Send Recv, single value, 2 procs", "[np2][mpi][dead][dead2]" ) {
 
 	check_test_results(rank, mpi_size, desired_value, ret_value);
 
-	test_closeout("DL2", rank);
+	test_closeout();
 }
 
 TEST_CASE( "DL: Send, single value, missing recv", "[npany][mpi][dead][dead3]" ) {
     int rank, mpi_size;
-    test_setup(&rank, &mpi_size);
+    test_setup(&rank, &mpi_size, "DL3");
 
     unsigned int data = 5;
     int desired_value = data;
@@ -125,12 +126,12 @@ TEST_CASE( "DL: Send, single value, missing recv", "[npany][mpi][dead][dead3]" )
 
     check_test_results(rank, mpi_size, desired_value, ret_value);
 
-    test_closeout("DL3", rank);
+    test_closeout();
 }
 
 TEST_CASE( "DL: Recv, single value, missing send", "[npany][mpi][dead][dead4]" ) {
     int rank, mpi_size;
-    test_setup(&rank, &mpi_size);
+    test_setup(&rank, &mpi_size, "DL4");
 
     unsigned int data = 5;
     int desired_value = data;
@@ -138,12 +139,12 @@ TEST_CASE( "DL: Recv, single value, missing send", "[npany][mpi][dead][dead4]" )
 
     check_test_results(rank, mpi_size, desired_value, ret_value);
 
-    test_closeout("DL4", rank);
+    test_closeout();
 }
 
 TEST_CASE( "RC: Recv Bcast Recv, single value, 3 procs", "[np3][mpi][race][race3]" ) {
 	int rank, mpi_size;
-    test_setup(&rank, &mpi_size);
+    test_setup(&rank, &mpi_size, "RC3");
     REQUIRE(mpi_size == 3);
 	
     unsigned int data = 10;
@@ -153,5 +154,5 @@ TEST_CASE( "RC: Recv Bcast Recv, single value, 3 procs", "[np3][mpi][race][race3
 
 	check_test_results(rank, mpi_size, desired_value, ret_value);
 
-	test_closeout("RC3", rank);
+	test_closeout();
 }
