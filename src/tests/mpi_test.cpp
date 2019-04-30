@@ -53,6 +53,19 @@ void check_test_results(int rank, int mpi_size, int desired_value, int ret_value
     }
 }
 
+TEST_CASE("emit deadlock", "[project][dead][npany][mpi]") {
+	int rank, mpi_size;
+    test_setup(&rank, &mpi_size, "hello");
+
+	int chosen = rand() % size;
+	if(chosen == rank) {
+		MPI_Wrap::log.emit_deadlock_detected();
+	}
+	MPI_Wrap::log.is_deadlock_detected();
+
+	test_closeout();
+}
+
 TEST_CASE("Just test I exist", "[hello][npany][mpi]") {
     int rank, mpi_size;
     test_setup(&rank, &mpi_size, "hello");
