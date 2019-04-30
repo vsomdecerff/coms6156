@@ -18,6 +18,10 @@ void test_setup(int* rank, int* mpi_size, std::string test_name) {
 }
 
 void all_here() {
+
+	//int rank;
+	//MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	//printf("here %d", rank);
 	MPI_Request req;
     MPI_Status stat;
     MPI_Ibarrier(MPI_COMM_WORLD, &req);
@@ -53,18 +57,31 @@ void check_test_results(int rank, int mpi_size, int desired_value, int ret_value
     }
 }
 
-TEST_CASE("emit deadlock", "[project][dead][npany][mpi]") {
+TEST_CASE("emit deadlock", "[project][dead][npany][mpi][dead5]") {
 	int rank, mpi_size;
-    test_setup(&rank, &mpi_size, "hello");
+    test_setup(&rank, &mpi_size, "PR1");
 
-	int chosen = rand() % size;
+	int chosen = rand() % mpi_size;
 	if(chosen == rank) {
-		MPI_Wrap::log.emit_deadlock_detected();
+	//	log.emit_deadlock_detected();
 	}
-	MPI_Wrap::log.is_deadlock_detected();
+	//log.is_deadlock_detected();
 
 	test_closeout();
 }
+
+
+TEST_CASE("bcast no 0 deadlock", "[project][dead][npany][mpi][dead6]") {
+    int rank, mpi_size;
+    test_setup(&rank, &mpi_size, "PR2");
+
+    int noop;
+    if (rank != 0) {
+        MPI_Wrap::MPIw_Bcast(&noop, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    }
+    test_closeout();
+}
+
 
 TEST_CASE("Just test I exist", "[hello][npany][mpi]") {
     int rank, mpi_size;
