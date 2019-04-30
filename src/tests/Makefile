@@ -48,7 +48,7 @@ ifeq ($(tag),$(help))
 else 
 	@for target in $(TARGETS) ; do \
 		echo Running $$target ; \
-		$(MPI_DIR)/bin/mpiexec -np $(p) --oversubscribe $$target $(tag) ; \
+		$(MPI_DIR)/bin/mpiexec -np $(p) --quiet --oversubscribe $$target $(tag) ; \
 		echo ; \
 	done 
 endif
