@@ -10,9 +10,16 @@
 
 
 #### Requirements
-- MPI Libraries:  I use openmpi 4.0.0
-- Catch2: I use Catch2 2.7.0
-- Python 3: I use python 3.6.5
+- MPI Libraries
+	- I use openmpi 4.0.0
+	- Build instructions will be highly dependent on your machine.  
+	Leverage source for details on installation: https://www.open-mpi.org/software/ompi/v4.0/ 
+- Catch2
+	- I use Catch2 2.7.0
+	- The great thing about catch is you dont have to compile it.  
+	All you have to do is include the main header: "catch.hpp".  https://github.com/catchorg/Catch2
+- Python 3
+	- I use python 3.6.5
 
 
 #### How to build
