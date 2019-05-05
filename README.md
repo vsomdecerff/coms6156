@@ -8,6 +8,9 @@
 - Graceful recovery from deadlock 
 - Provide useful information for debugging
 
+#### Previous assignments
+See docs directory. 
+
 
 #### Requirements
 - MPI Libraries
