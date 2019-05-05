@@ -24,9 +24,9 @@ run:
 
 help: 
 	@$(ECHO) "-- Make variables information --"
-	@$(ECHO) "\t COMPILER = $(COMPILER)"
 	@$(ECHO) "\t ROOT_DIR = $(ROOT_DIR)"
 	@$(ECHO) "\t MPI_DIR  = $(MPI_DIR)"
+	@$(ECHO) "\t CATCH_DIR = $(CATCH_DIR)"
 	@$(ECHO) "-- "
 	@$(ECHO) "Description of targets understood by this Makefile"
 	@$(ECHO) "\t all      : builds everything, default"
