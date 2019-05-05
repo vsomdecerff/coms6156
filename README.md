@@ -35,9 +35,9 @@ See all make instructions:
 make help
 
 -- Make variables information --
-	 COMPILER = 
 	 ROOT_DIR = /Users/vsomdec/workspace/Software_Engineering/project/code/coms6156
 	 MPI_DIR  = /Users/vsomdec/workspace/Software_Engineering/project/code/openmpi-4.0.0/install/
+	 CATCH_DIR = /Users/vsomdec/workspace/Software_Engineering/project/code/Catch2-2.7.0/single_include/
 -- 
 Description of targets understood by this Makefile
 	 all      : builds everything, default
